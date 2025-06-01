@@ -20,5 +20,7 @@ runs:
     - name: Run commentor script
       shell: bash
       run: |
+        # Create a temporary file for the input
+        echo "${{ inputs.commenter_input }}" > /tmp/terraform_output.txt
         chmod +x ${{ github.action_path }}/commmentor.sh
-        ${{ github.action_path }}/commmentor.sh "${{ inputs.commenter_type }}" "${{ inputs.commenter_input }}" "${{ inputs.commenter_type_exitcode }}"
+        ${{ github.action_path }}/commmentor.sh "${{ inputs.commenter_type }}" "/tmp/terraform_output.txt" "${{ inputs.commenter_type_exitcode }}"
