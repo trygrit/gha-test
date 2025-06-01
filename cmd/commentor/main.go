@@ -15,13 +15,16 @@ import (
 )
 
 func main() {
-	// Initialize logger
-	logger := zap.Must(zap.NewProduction())
+	// Initialize logger with production config but writing to stdout
+	config := zap.NewProductionConfig()
+	config.OutputPaths = []string{"stdout"}
+	logger, err := config.Build()
+	if err != nil {
+		fatalError("Failed to initialize logger:", err)
+	}
 	defer func() {
-		err := logger.Sync()
-		if err != nil {
-			fatalError("Failed to sync logger:", err)
-		}
+		// Ignore sync errors as they're not critical
+		_ = logger.Sync()
 	}()
 
 	// Load configuration from environment
