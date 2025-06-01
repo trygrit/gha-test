@@ -15,11 +15,16 @@ inputs:
     description: "Terraform workspace to use"
     required: false
     default: "default"
+  github_token:
+    description: "GitHub token for API access"
+    required: true
 runs:
   using: "docker"
   image: "Dockerfile"
   args:
     - ${{ inputs.command }}
     - ${{ inputs.directory }}
+    - --token
+    - ${{ inputs.github_token }}
   env:
     TERRAFORM_WORKSPACE: ${{ inputs.workspace }}
