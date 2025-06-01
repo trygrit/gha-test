@@ -69,7 +69,7 @@ func main() {
 	}
 
 	// Run terraform command
-	cmd := exec.Command("terraform", "-chdir="+args.Directory, string(command))
+	cmd := exec.Command("/usr/local/bin/terraform", "-chdir="+args.Directory, string(command))
 	output, err := cmd.CombinedOutput()
 	exitCode := "0"
 	if err != nil {
