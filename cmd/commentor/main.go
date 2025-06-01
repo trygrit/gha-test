@@ -3,18 +3,18 @@ package main
 import (
 	"context"
 	"fmt"
+	"os"
+	"strings"
+
 	"github.com/alexflint/go-arg"
 	"github.com/trygrit/gha-terraform-commentor/internal/gh"
 	"github.com/trygrit/gha-terraform-commentor/internal/terraform"
-	"os"
-	"strings"
 
 	"github.com/caarlos0/env/v11"
 	"go.uber.org/zap"
 )
 
 func main() {
-
 	// Initialize logger
 	logger := zap.Must(zap.NewProduction())
 	defer func() {
@@ -36,10 +36,6 @@ func main() {
 
 	logger.Debug("Parsed arguments", zap.String("command", args.Command), zap.String("source_file", args.Input), zap.String("exit_code", args.CommandExitCode))
 
-	//
-	//
-	//
-
 	// Parse & validate the command
 	command := terraform.Command(args.Command)
 	if !command.Validate() {
@@ -51,7 +47,8 @@ func main() {
 
 	ctx := context.Background()
 
-	data, err := os.ReadFile(cfg.GitHubEventPath)
+	// Read the GitHub event data from stdin
+	data, err := os.ReadFile("/github/workflow/event.json")
 	if err != nil {
 		fatalError("failed to read event file", err)
 	}
@@ -113,7 +110,6 @@ func fatalError(s string, err error) {
 // Config holds all configuration from environment variables
 type Config struct {
 	GitHubToken        string `env:"GITHUB_TOKEN,required"`
-	GitHubEventPath    string `env:"GITHUB_EVENT_PATH,required"`
 	TerraformWorkspace string `env:"TERRAFORM_WORKSPACE" envDefault:"default"`
 	DetailsState       string `env:"DETAILS_STATE" envDefault:"open"`
 	Debug              bool   `env:"DEBUG" envDefault:"false"`

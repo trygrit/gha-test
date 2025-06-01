@@ -18,6 +18,10 @@ inputs:
   github_token:
     description: "GitHub token for posting comments"
     required: true
+  terraform_workspace:
+    description: "Terraform workspace name"
+    required: false
+    default: "default"
 runs:
   using: "docker"
   image: "Dockerfile"
@@ -28,4 +32,4 @@ runs:
   env:
     GITHUB_TOKEN: ${{ inputs.github_token }}
     GITHUB_EVENT_PATH: ${{ github.event_path }}
-    TERRAFORM_WORKSPACE: ${{ env.TERRAFORM_WORKSPACE || 'default' }}
+    TERRAFORM_WORKSPACE: ${{ inputs.terraform_workspace }}

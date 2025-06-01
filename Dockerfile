@@ -19,6 +19,9 @@ FROM alpine:latest
 
 WORKDIR /app
 
+# Create directory for GitHub event file
+RUN mkdir -p /github/workflow
+
 # Copy the binary from builder
 COPY --from=builder /app/commentor .
 
