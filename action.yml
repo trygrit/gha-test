@@ -15,10 +15,6 @@ inputs:
     description: "The exit code from the terraform command"
     required: true
     default: "0"
-  workspace:
-    description: "Terraform workspace name"
-    required: false
-    default: "default"
 runs:
   using: "docker"
   image: "Dockerfile"
@@ -28,4 +24,4 @@ runs:
     - ${{ inputs.exit_code }}
   env:
     GITHUB_TOKEN: ${{ github.token }}
-    TERRAFORM_WORKSPACE: ${{ inputs.workspace }}
+    TERRAFORM_WORKSPACE: ${{ github.workspace }}
