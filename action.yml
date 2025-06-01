@@ -14,6 +14,7 @@ inputs:
   commenter_type_exitcode:
     description: "The exit code from a previous step output."
     required: true
+    default: "0"
 runs:
   using: "composite"
   steps:
@@ -22,5 +23,12 @@ runs:
       run: |
         # Create a temporary file for the input
         echo "${{ inputs.commenter_input }}" > /tmp/terraform_output.txt
+
+        # Set default exit code if empty
+        EXIT_CODE="${{ inputs.commenter_type_exitcode }}"
+        if [ -z "$EXIT_CODE" ]; then
+          EXIT_CODE="0"
+        fi
+
         chmod +x ${{ github.action_path }}/commmentor.sh
-        ${{ github.action_path }}/commmentor.sh "${{ inputs.commenter_type }}" "/tmp/terraform_output.txt" "${{ inputs.commenter_type_exitcode }}"
+        ${{ github.action_path }}/commmentor.sh "${{ inputs.commenter_type }}" "/tmp/terraform_output.txt" "$EXIT_CODE"
