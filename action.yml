@@ -15,6 +15,13 @@ inputs:
     description: "Terraform workspace to use"
     required: false
     default: "default"
+  github_token:
+    description: "GitHub token for API access"
+    required: true
+  terraform_version:
+    description: "Version of Terraform to use"
+    required: false
+    default: "1.12.1"
 runs:
   using: "docker"
   image: "Dockerfile"
@@ -22,6 +29,6 @@ runs:
     - ${{ inputs.command }}
     - ${{ inputs.directory }}
   env:
-    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    GITHUB_TOKEN: ${{ inputs.github_token }}
     TERRAFORM_WORKSPACE: ${{ inputs.workspace }}
-    TERRAFORM_VERSION: ${{ env.TERRAFORM_VERSION }}
+    TERRAFORM_VERSION: ${{ inputs.terraform_version }}
