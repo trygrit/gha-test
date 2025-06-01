@@ -15,9 +15,10 @@ inputs:
     description: "The exit code from a previous step output."
     required: true
 runs:
-  using: "docker"
-  image: "Dockerfile"
-  args:
-    - ${{ inputs.commenter_type }}
-    - ${{ inputs.commenter_input }}
-    - ${{ inputs.commenter_exitcode }}
+  using: "composite"
+  steps:
+    - name: Run commentor script
+      shell: bash
+      run: |
+        chmod +x ./commmentor.sh
+        ./commmentor.sh "${{ inputs.commenter_type }}" "${{ inputs.commenter_input }}" "${{ inputs.commenter_exitcode }}"
