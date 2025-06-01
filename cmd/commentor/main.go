@@ -31,7 +31,7 @@ func main() {
 	// Load configuration from environment
 	cfg := Config{}
 	if err := env.Parse(&cfg); err != nil {
-		fatalError("", err)
+		fatalError("Failed to parse environment variables:", err)
 	}
 
 	// Parse arguments
@@ -47,7 +47,7 @@ func main() {
 	}
 
 	// Create a GitHub client
-	client := gh.New(args.Token)
+	client := gh.New(cfg.GitHubToken)
 
 	ctx := context.Background()
 
@@ -118,6 +118,7 @@ func fatalError(s string, err error) {
 
 // Config holds all configuration from environment variables
 type Config struct {
+	GitHubToken        string `env:"GITHUB_TOKEN,required"`
 	TerraformWorkspace string `env:"TERRAFORM_WORKSPACE" envDefault:"default"`
 	DetailsState       string `env:"DETAILS_STATE" envDefault:"open"`
 	Debug              bool   `env:"DEBUG" envDefault:"false"`
@@ -126,5 +127,4 @@ type Config struct {
 var arguments struct {
 	Command   string `arg:"positional, required" help:"Command run, fmt, plan, apply, etc."`
 	Directory string `arg:"positional, required" help:"Directory containing terraform files"`
-	Token     string `arg:"--token" help:"GitHub token for API access"`
 }
