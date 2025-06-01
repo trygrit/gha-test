@@ -97,22 +97,23 @@ func main() {
 	// Post comment to PR
 	err = client.PostPRComment(ctx, event.Repository.Owner.Login, event.Repository.Name, event.PullRequest.Number, comment)
 	if err != nil {
-		fatalError("Error posting comment", err)
+		logger.Error("Error posting comment", zap.Error(err))
+		os.Exit(1) // Exit with error code 1 on failure
 	}
 
 	logger.Debug("Successfully posted comment to PR")
 }
 
-// fatalError logs the error message and exits the program, appending a newline
+// fatalError logs the error message and exits the program with error code 1
 func fatalError(s string, err error) {
 	if len(s) > 0 {
 		if !strings.HasSuffix(s, " ") {
-			s += s + " "
+			s += " "
 		}
 	}
 
 	_, _ = fmt.Printf(s+"%v\n", err)
-	os.Exit(0)
+	os.Exit(1) // Exit with error code 1 on failure
 }
 
 // Config holds all configuration from environment variables
