@@ -22,5 +22,5 @@ runs:
     - ${{ inputs.command }}
     - ${{ inputs.directory }}
   env:
-    GITHUB_TOKEN: ${{ github.token }}
+    GITHUB_TOKEN: $GITHUB_TOKEN
     TERRAFORM_WORKSPACE: ${{ inputs.workspace }}
