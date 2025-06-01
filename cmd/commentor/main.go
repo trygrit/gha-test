@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"os/exec"
 	"strings"
 
 	"github.com/alexflint/go-arg"
@@ -37,7 +38,7 @@ func main() {
 	var args = arguments
 	_ = arg.MustParse(&args)
 
-	logger.Debug("Parsed arguments", zap.String("command", args.Command), zap.String("source_file", args.Input), zap.String("exit_code", args.CommandExitCode))
+	logger.Debug("Parsed arguments", zap.String("command", args.Command), zap.String("directory", args.Directory))
 
 	// Parse & validate the command
 	command := terraform.Command(args.Command)
@@ -67,18 +68,14 @@ func main() {
 		os.Exit(0)
 	}
 
-	// Get the terraform output
-	var plan string
-	if _, err := os.Stat(args.Input); err == nil {
-		// If the input is a file path, read it
-		content, err := os.ReadFile(args.Input)
-		if err != nil {
-			fatalError("failed to read terraform plan output", err)
+	// Run terraform command
+	cmd := exec.Command("terraform", "-chdir="+args.Directory, string(command))
+	output, err := cmd.CombinedOutput()
+	exitCode := "0"
+	if err != nil {
+		if exitErr, ok := err.(*exec.ExitError); ok {
+			exitCode = fmt.Sprintf("%d", exitErr.ExitCode())
 		}
-		plan = string(content)
-	} else {
-		// If the input is not a file, use it directly
-		plan = args.Input
 	}
 
 	searchPattern := fmt.Sprintf("### Terraform `%s`", args.Command)
@@ -92,7 +89,7 @@ func main() {
 	}
 
 	// Create a comment body based on command
-	comment, err := terraform.Comment(command, plan, args.CommandExitCode, cfg.TerraformWorkspace, cfg.DetailsState)
+	comment, err := terraform.Comment(command, string(output), exitCode, cfg.TerraformWorkspace, cfg.DetailsState)
 	if err != nil {
 		fatalError("Error creating comment body", err)
 	}
@@ -127,7 +124,6 @@ type Config struct {
 }
 
 var arguments struct {
-	Command         string `arg:"positional, required" help:"Command run, fmt, plan, apply, etc."`
-	Input           string `arg:"positional, required" help:"Path to input file to parse or direct input string"`
-	CommandExitCode string `arg:"positional, required" help:"Command exit code"`
+	Command   string `arg:"positional, required" help:"Command run, fmt, plan, apply, etc."`
+	Directory string `arg:"positional, required" help:"Directory containing terraform files"`
 }

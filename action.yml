@@ -1,34 +1,30 @@
 name: "Terraform Pull Request Commenter"
-description: "Adds opinionated comments to a PR from Terraform fmt/init/plan output. The output should be written to a file first."
+description: "Adds opinionated comments to a PR from Terraform fmt/init/plan output."
 author: "Try GRIT"
 branding:
   icon: "git-pull-request"
   color: "purple"
 inputs:
-  commenter_type:
-    description: "The type of comment. Options: [fmt, init, plan]."
+  command:
+    description: "The terraform command to run (fmt, plan, etc.)"
     required: true
-  commenter_input:
-    description: "Path to the file containing the output to comment on."
-    required: true
-  commenter_type_exitcode:
-    description: "The exit code from a previous step output."
-    required: true
-    default: "0"
-  github_token:
-    description: "GitHub token for posting comments"
-    required: true
-  terraform_workspace:
+  directory:
+    description: "The directory containing terraform files"
+    required: false
+    default: "."
+  workspace:
     description: "Terraform workspace name"
     required: false
     default: "default"
+  github_token:
+    description: "GitHub token for posting comments"
+    required: true
 runs:
   using: "docker"
   image: "Dockerfile"
   args:
-    - ${{ inputs.commenter_type }}
-    - ${{ inputs.commenter_input }}
-    - ${{ inputs.commenter_type_exitcode }}
+    - ${{ inputs.command }}
+    - ${{ inputs.directory }}
   env:
     GITHUB_TOKEN: ${{ inputs.github_token }}
-    TERRAFORM_WORKSPACE: ${{ inputs.terraform_workspace }}
+    TERRAFORM_WORKSPACE: ${{ inputs.workspace }}

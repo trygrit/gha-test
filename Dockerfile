@@ -19,6 +19,9 @@ FROM alpine:latest
 
 WORKDIR /app
 
+# Install terraform
+RUN apk add --no-cache terraform
+
 # Create directory for GitHub event file
 RUN mkdir -p /github/workflow
 
