@@ -43,7 +43,7 @@ func main() {
 	// Parse & validate the command
 	command := terraform.Command(args.Command)
 	if !command.Validate() {
-		fatalError("Invalid command provided. Valid commands are: fmt, plan, apply, destroy.", nil)
+		fatalError("Invalid command provided. Valid commands are: fmt, init, plan.", nil)
 	}
 
 	// Create a GitHub client

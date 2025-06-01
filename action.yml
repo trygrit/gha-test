@@ -5,23 +5,22 @@ branding:
   icon: "git-pull-request"
   color: "purple"
 inputs:
-  type:
-    description: "The type of comment (fmt, plan, etc.)"
+  command:
+    description: "The terraform command to run (fmt, init, plan)"
     required: true
-  output:
-    description: "The terraform command output"
+  directory:
+    description: "Directory containing terraform files"
     required: true
-  exit_code:
-    description: "The exit code from the terraform command"
-    required: true
-    default: "0"
+  workspace:
+    description: "Terraform workspace to use"
+    required: false
+    default: "default"
 runs:
   using: "docker"
   image: "Dockerfile"
   args:
-    - ${{ inputs.type }}
-    - ${{ inputs.output }}
-    - ${{ inputs.exit_code }}
+    - ${{ inputs.command }}
+    - ${{ inputs.directory }}
   env:
     GITHUB_TOKEN: $GITHUB_TOKEN
-    TERRAFORM_WORKSPACE: $GITHUB_WORKSPACE
+    TERRAFORM_WORKSPACE: ${{ inputs.workspace }}
