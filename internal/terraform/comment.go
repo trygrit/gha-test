@@ -2,8 +2,9 @@ package terraform
 
 import (
 	"fmt"
-	"github.com/trygrit/gha-terraform-commentor/internal/templates"
 	"strings"
+
+	"github.com/trygrit/gha-terraform-commentor/internal/templates"
 )
 
 func Comment(command Command, input, exitCode, workspace, detailsState string) (string, error) {
@@ -23,12 +24,12 @@ func Comment(command Command, input, exitCode, workspace, detailsState string) (
 		if exitCode == "0" || exitCode == "2" {
 			// Process successful plan output
 			input = ParsePlan(input, maxCommentLength)
-			tmplName = "plan_success"
+			tmplName = "plan_success.tmpl"
 		} else {
-			tmplName = "plan_failure"
+			tmplName = "plan_failure.tmpl"
 		}
 	} else {
-		tmplName = "general"
+		tmplName = "general.tmpl"
 	}
 
 	if tmpl.Lookup(tmplName) == nil {
