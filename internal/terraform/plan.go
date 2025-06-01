@@ -11,72 +11,36 @@ func removeAnsiStringFromInput(data string) string {
 }
 
 func ParsePlan(plan string, maxlength int) string {
-	// Extract the plan section
-	planStartPatterns := []string{
-		"An execution plan has been generated and is shown below.",
-		"Terraform used the selected providers to generate the following execution",
-		"No changes. Infrastructure is up-to-date.",
-		"No changes. Your infrastructure matches the configuration.",
-		"Note: Objects have changed outside of Terraform",
-	}
-
 	// Remove ANSI color codes
 	plan = removeAnsiStringFromInput(plan)
 
-	// Split into lines and process
+	// Split into lines
 	lines := strings.Split(plan, "\n")
 	var cleanPlan strings.Builder
-	started := false
-	inStateLock := false
-	inReading := false
 
-	for _, line := range lines {
-		// Handle state lock messages
-		if strings.Contains(line, "Releasing state lock") {
-			inStateLock = true
-			continue
-		}
-		if inStateLock && strings.Contains(line, "Error:") {
-			inStateLock = false
-			continue
-		}
-		if inStateLock {
-			continue
-		}
-
-		// Handle "Reading..." messages
-		if strings.Contains(line, ": Reading...") {
-			inReading = true
-			continue
-		}
-		if inReading && strings.Contains(line, "Error:") {
-			inReading = false
-			continue
-		}
-		if inReading {
-			continue
-		}
-
-		// Start capturing plan output
-		if !started {
-			for _, pattern := range planStartPatterns {
-				if strings.Contains(line, pattern) {
-					started = true
-					cleanPlan.WriteString(line + "\n")
-					break
-				}
-			}
-			continue
-		}
-
-		// Stop at the end of the plan
-		if started && strings.HasPrefix(strings.TrimSpace(line), "Plan: ") {
-			cleanPlan.WriteString(line + "\n")
+	// Find the start of the actual plan
+	startIndex := -1
+	for i, line := range lines {
+		if strings.Contains(line, "Terraform will perform the following actions:") {
+			startIndex = i
 			break
 		}
+	}
 
-		// Format diff lines
-		if started {
+	// If we found the start, capture from there
+	if startIndex != -1 {
+		// Skip the header line
+		startIndex++
+
+		// Capture until we hit the plan summary
+		for i := startIndex; i < len(lines); i++ {
+			line := lines[i]
+			if strings.HasPrefix(strings.TrimSpace(line), "Plan: ") {
+				cleanPlan.WriteString(line + "\n")
+				break
+			}
+
+			// Format diff lines
 			trimmedLine := strings.TrimLeft(line, " \t")
 			if strings.HasPrefix(trimmedLine, "-") ||
 				strings.HasPrefix(trimmedLine, "+") ||
@@ -90,6 +54,15 @@ func ParsePlan(plan string, maxlength int) string {
 				cleanPlan.WriteString(prefix + indentation + rest + "\n")
 			} else {
 				cleanPlan.WriteString(line + "\n")
+			}
+		}
+	} else {
+		// If we couldn't find the plan start, look for "No changes" message
+		for _, line := range lines {
+			if strings.Contains(line, "No changes. Infrastructure is up-to-date.") ||
+				strings.Contains(line, "No changes. Your infrastructure matches the configuration.") {
+				cleanPlan.WriteString(line + "\n")
+				break
 			}
 		}
 	}
