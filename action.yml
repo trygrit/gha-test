@@ -15,11 +15,16 @@ inputs:
     description: "The exit code from a previous step output."
     required: true
     default: "0"
+  github_token:
+    description: "GitHub token for posting comments"
+    required: true
 runs:
   using: "composite"
   steps:
     - name: Run commentor script
       shell: bash
+      env:
+        GITHUB_TOKEN: ${{ inputs.github_token }}
       run: |
         # Create a temporary file for the input
         echo "${{ inputs.commenter_input }}" > /tmp/terraform_output.txt
