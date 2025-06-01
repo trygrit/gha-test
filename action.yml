@@ -31,5 +31,4 @@ runs:
     - ${{ inputs.commenter_type_exitcode }}
   env:
     GITHUB_TOKEN: ${{ inputs.github_token }}
-    GITHUB_EVENT_PATH: ${{ github.event_path }}
     TERRAFORM_WORKSPACE: ${{ inputs.terraform_workspace }}
