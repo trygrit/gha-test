@@ -15,9 +15,6 @@ inputs:
     description: "The exit code from the terraform command"
     required: true
     default: "0"
-  github_token:
-    description: "GitHub token for posting comments"
-    required: true
   workspace:
     description: "Terraform workspace name"
     required: false
@@ -30,5 +27,5 @@ runs:
     - ${{ inputs.output }}
     - ${{ inputs.exit_code }}
   env:
-    GITHUB_TOKEN: ${{ inputs.github_token }}
+    GITHUB_TOKEN: ${{ github.token }}
     TERRAFORM_WORKSPACE: ${{ inputs.workspace }}
