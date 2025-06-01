@@ -3,9 +3,10 @@ package gh
 import (
 	"context"
 	"encoding/json"
+	"strings"
+
 	"github.com/google/go-github/v60/github"
 	"golang.org/x/oauth2"
-	"strings"
 )
 
 type Client struct {
@@ -50,19 +51,6 @@ func (c *Client) PostPRComment(ctx context.Context, owner, repo string, prNumber
 	return nil
 }
 
-func (c *Client) parseIssueCommentURL(url string) Repository {
-	// Extract owner and repo from URL like "https://api.github.com/repos/owner/repo/issues/comments{/number}"
-	parts := strings.Split(url, "/")
-	if len(parts) >= 6 {
-		return Repository{
-			Owner: parts[4],
-			Name:  parts[5],
-		}
-	}
-
-	return Repository{}
-}
-
 func (c *Client) ParseEvent(payload []byte) (Event, error) {
 	var event Event
 
@@ -70,11 +58,6 @@ func (c *Client) ParseEvent(payload []byte) (Event, error) {
 	if err != nil {
 		return event, err
 	}
-
-	r := c.parseIssueCommentURL(event.Repository.IssueCommentURL)
-
-	event.Repository.Owner = r.Owner
-	event.Repository.Name = r.Name
 
 	return event, nil
 }
@@ -91,7 +74,9 @@ type PullRequest struct {
 }
 
 type Repository struct {
-	Owner           string `json:"owner"`
+	Owner struct {
+		Login string `json:"login"`
+	} `json:"owner"`
 	Name            string `json:"name"`
 	IssueCommentURL string `json:"issue_comment_url"`
 }

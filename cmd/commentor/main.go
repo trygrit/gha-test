@@ -71,7 +71,7 @@ func main() {
 	}
 
 	searchPattern := fmt.Sprintf("### Terraform `%s`", args.Command)
-	ok, err := client.DeleteExistingComment(ctx, event.Repository.Owner, event.Repository.Name, event.PullRequest.Number, searchPattern)
+	ok, err := client.DeleteExistingComment(ctx, event.Repository.Owner.Login, event.Repository.Name, event.PullRequest.Number, searchPattern)
 	if err != nil {
 		logger.Warn("Error checking for existing comments", zap.Error(err))
 	}
@@ -87,7 +87,7 @@ func main() {
 	}
 
 	// Post comment to PR
-	err = client.PostPRComment(ctx, event.Repository.Owner, event.Repository.Name, event.PullRequest.Number, comment)
+	err = client.PostPRComment(ctx, event.Repository.Owner.Login, event.Repository.Name, event.PullRequest.Number, comment)
 	if err != nil {
 		fatalError("Error posting comment", err)
 	}
