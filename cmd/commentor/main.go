@@ -64,10 +64,18 @@ func main() {
 		os.Exit(0)
 	}
 
-	// Read the Terraform plan output file
-	plan, err := os.ReadFile(args.Input)
-	if err != nil {
-		fatalError("failed to read terraform plan output", err)
+	// Get the terraform output
+	var plan string
+	if _, err := os.Stat(args.Input); err == nil {
+		// If the input is a file path, read it
+		content, err := os.ReadFile(args.Input)
+		if err != nil {
+			fatalError("failed to read terraform plan output", err)
+		}
+		plan = string(content)
+	} else {
+		// If the input is not a file, use it directly
+		plan = args.Input
 	}
 
 	searchPattern := fmt.Sprintf("### Terraform `%s`", args.Command)
@@ -81,7 +89,7 @@ func main() {
 	}
 
 	// Create a comment body based on command
-	comment, err := terraform.Comment(command, string(plan), args.CommandExitCode, cfg.TerraformWorkspace, cfg.DetailsState)
+	comment, err := terraform.Comment(command, plan, args.CommandExitCode, cfg.TerraformWorkspace, cfg.DetailsState)
 	if err != nil {
 		fatalError("Error creating comment body", err)
 	}
@@ -117,6 +125,6 @@ type Config struct {
 
 var arguments struct {
 	Command         string `arg:"positional, required" help:"Command run, fmt, plan, apply, etc."`
-	Input           string `arg:"positional, required" help:"Path to input file to parse"`
+	Input           string `arg:"positional, required" help:"Path to input file to parse or direct input string"`
 	CommandExitCode string `arg:"positional, required" help:"Command exit code"`
 }
