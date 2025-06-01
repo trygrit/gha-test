@@ -21,10 +21,18 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: Run commentor script
+    - name: Build commentor
+      shell: bash
+      run: |
+        cd ${{ github.action_path }}
+        go build -o commentor ./cmd/commentor
+
+    - name: Run commentor
       shell: bash
       env:
         GITHUB_TOKEN: ${{ inputs.github_token }}
+        GITHUB_EVENT_PATH: ${{ github.event_path }}
+        TERRAFORM_WORKSPACE: ${{ env.TERRAFORM_WORKSPACE || 'default' }}
       run: |
         # Create a temporary file for the input
         echo "${{ inputs.commenter_input }}" > /tmp/terraform_output.txt
@@ -35,5 +43,5 @@ runs:
           EXIT_CODE="0"
         fi
 
-        chmod +x ${{ github.action_path }}/commmentor.sh
-        ${{ github.action_path }}/commmentor.sh "${{ inputs.commenter_type }}" "/tmp/terraform_output.txt" "$EXIT_CODE"
+        # Run the commentor binary
+        ${{ github.action_path }}/commentor "${{ inputs.commenter_type }}" "/tmp/terraform_output.txt" "$EXIT_CODE"
