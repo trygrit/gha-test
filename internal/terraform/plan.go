@@ -28,6 +28,7 @@ func ParsePlan(plan string, maxlength int) string {
 	var cleanPlan strings.Builder
 	started := false
 	inStateLock := false
+	inReading := false
 
 	for _, line := range lines {
 		// Handle state lock messages
@@ -40,6 +41,19 @@ func ParsePlan(plan string, maxlength int) string {
 			continue
 		}
 		if inStateLock {
+			continue
+		}
+
+		// Handle "Reading..." messages
+		if strings.Contains(line, ": Reading...") {
+			inReading = true
+			continue
+		}
+		if inReading && strings.Contains(line, "Error:") {
+			inReading = false
+			continue
+		}
+		if inReading {
 			continue
 		}
 
