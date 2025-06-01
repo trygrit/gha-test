@@ -117,7 +117,7 @@ func fatalError(s string, err error) {
 
 // Config holds all configuration from environment variables
 type Config struct {
-	GitHubToken        string `env:"github.token,required"`
+	GitHubToken        string `env:"GITHUB_TOKEN" envDefault:"${{ github.token }}"`
 	TerraformWorkspace string `env:"TERRAFORM_WORKSPACE" envDefault:"default"`
 	DetailsState       string `env:"DETAILS_STATE" envDefault:"open"`
 	Debug              bool   `env:"DEBUG" envDefault:"false"`
