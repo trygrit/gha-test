@@ -57,7 +57,13 @@ func main() {
 
 	// Build command arguments
 	cmdArgs := []string{"-chdir=" + args.Directory, string(command)}
-	// Add any additional arguments from the command string
+
+	// Automatically add --auto-approve for apply commands
+	if command == terraform.CommandApply {
+		cmdArgs = append(cmdArgs, "--auto-approve")
+	}
+
+	// Add any additional arguments from the command string (excluding the first part which is the command)
 	if len(commandParts) > 1 {
 		cmdArgs = append(cmdArgs, commandParts[1:]...)
 	}
