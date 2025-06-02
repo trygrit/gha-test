@@ -65,6 +65,22 @@ func main() {
 	// Check if this is a PR
 	if event.PullRequest.Number == 0 {
 		logger.Debug("Not a PR, skipping comment post")
+		// If it's not a PR, just run the terraform command and exit
+		cmd := exec.Command("/usr/local/bin/terraform", "-chdir="+args.Directory, string(command))
+		output, err := cmd.CombinedOutput()
+		if err != nil {
+			if exitErr, ok := err.(*exec.ExitError); ok {
+				logger.Error("Terraform command failed",
+					zap.String("command", string(command)),
+					zap.String("output", string(output)),
+					zap.Int("exit_code", exitErr.ExitCode()))
+				os.Exit(exitErr.ExitCode())
+			}
+			fatalError("Failed to run terraform command:", err)
+		}
+		logger.Info("Terraform command completed successfully",
+			zap.String("command", string(command)),
+			zap.String("output", string(output)))
 		os.Exit(0)
 	}
 
