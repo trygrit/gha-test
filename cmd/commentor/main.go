@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"regexp"
 	"strings"
 
 	"github.com/alexflint/go-arg"
@@ -15,6 +16,12 @@ import (
 	"github.com/caarlos0/env/v11"
 	"go.uber.org/zap"
 )
+
+// stripANSI removes ANSI color codes from a string
+func stripANSI(s string) string {
+	ansiRegex := regexp.MustCompile(`\x1b\[[0-9;]*[a-zA-Z]`)
+	return ansiRegex.ReplaceAllString(s, "")
+}
 
 func main() {
 	// Initialize logger with production config but writing to stdout
@@ -136,7 +143,7 @@ func main() {
 		for scanner.Scan() {
 			line := scanner.Text()
 			fmt.Println(line)
-			output.WriteString(line + "\n")
+			output.WriteString(stripANSI(line) + "\n")
 		}
 	}()
 	go func() {
@@ -144,7 +151,7 @@ func main() {
 		for scanner.Scan() {
 			line := scanner.Text()
 			fmt.Fprintln(os.Stderr, line)
-			output.WriteString(line + "\n")
+			output.WriteString(stripANSI(line) + "\n")
 		}
 	}()
 
