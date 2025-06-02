@@ -29,8 +29,9 @@ RUN apk add --no-cache curl unzip bash python3 aws-cli && \
     rm terraform_${TERRAFORM_VERSION:-1.12.1}_linux_amd64.zip && \
     apk del curl unzip
 
-# Copy the binary from builder
+# Copy the binary and templates from builder
 COPY --from=builder /app/commentor /app/commentor
+COPY --from=builder /app/internal/templates /app/internal/templates
 
 # Create directory for GitHub event file
 RUN mkdir -p /github/workflow
