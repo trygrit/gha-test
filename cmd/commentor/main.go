@@ -54,6 +54,10 @@ func main() {
 		fatalError("Invalid command provided. Valid commands are: fmt, init, plan.", nil)
 	}
 
+	// Build command arguments
+	cmdArgs := []string{"-chdir=" + args.Directory, string(command)}
+	cmdArgs = append(cmdArgs, args.Args...)
+
 	// Create a GitHub client
 	client := gh.New(args.Token)
 
@@ -74,7 +78,7 @@ func main() {
 	if event.PullRequest.Number == 0 {
 		logger.Debug("Not a PR, skipping comment post")
 		// If it's not a PR, just run the terraform command and exit
-		cmd := exec.Command("/usr/local/bin/terraform", "-chdir="+args.Directory, string(command))
+		cmd := exec.Command("/usr/local/bin/terraform", cmdArgs...)
 		// Set up pipes to capture output
 		stdout, err := cmd.StdoutPipe()
 		if err != nil {
@@ -120,7 +124,7 @@ func main() {
 	}
 
 	// Run terraform command
-	cmd := exec.Command("/usr/local/bin/terraform", "-chdir="+args.Directory, string(command))
+	cmd := exec.Command("/usr/local/bin/terraform", cmdArgs...)
 	// Set up pipes to capture output
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
@@ -209,7 +213,8 @@ type Config struct {
 }
 
 var arguments struct {
-	Command   string `arg:"positional, required" help:"Command run, fmt, plan, apply, etc."`
-	Directory string `arg:"positional, required" help:"Directory containing terraform files"`
-	Token     string `arg:"--token" help:"GitHub token for API access"`
+	Command   string   `arg:"positional, required" help:"Command run, fmt, plan, apply, etc."`
+	Directory string   `arg:"positional, required" help:"Directory containing terraform files"`
+	Token     string   `arg:"--token" help:"GitHub token for API access"`
+	Args      []string `arg:"positional" help:"Additional arguments to pass to terraform command"`
 }
