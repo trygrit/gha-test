@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"context"
 	"fmt"
 	"os"
@@ -67,28 +68,89 @@ func main() {
 		logger.Debug("Not a PR, skipping comment post")
 		// If it's not a PR, just run the terraform command and exit
 		cmd := exec.Command("/usr/local/bin/terraform", "-chdir="+args.Directory, string(command))
-		output, err := cmd.CombinedOutput()
+		// Set up pipes to capture output
+		stdout, err := cmd.StdoutPipe()
 		if err != nil {
+			fatalError("Failed to create stdout pipe:", err)
+		}
+		stderr, err := cmd.StderrPipe()
+		if err != nil {
+			fatalError("Failed to create stderr pipe:", err)
+		}
+
+		// Start the command
+		if err := cmd.Start(); err != nil {
+			fatalError("Failed to start terraform command:", err)
+		}
+
+		// Stream output to stdout
+		go func() {
+			scanner := bufio.NewScanner(stdout)
+			for scanner.Scan() {
+				fmt.Println(scanner.Text())
+			}
+		}()
+		go func() {
+			scanner := bufio.NewScanner(stderr)
+			for scanner.Scan() {
+				fmt.Fprintln(os.Stderr, scanner.Text())
+			}
+		}()
+
+		// Wait for command to complete
+		if err := cmd.Wait(); err != nil {
 			if exitErr, ok := err.(*exec.ExitError); ok {
 				logger.Error("Terraform command failed",
 					zap.String("command", string(command)),
-					zap.String("output", string(output)),
 					zap.Int("exit_code", exitErr.ExitCode()))
 				os.Exit(exitErr.ExitCode())
 			}
 			fatalError("Failed to run terraform command:", err)
 		}
 		logger.Info("Terraform command completed successfully",
-			zap.String("command", string(command)),
-			zap.String("output", string(output)))
+			zap.String("command", string(command)))
 		os.Exit(0)
 	}
 
 	// Run terraform command
 	cmd := exec.Command("/usr/local/bin/terraform", "-chdir="+args.Directory, string(command))
-	output, err := cmd.CombinedOutput()
-	exitCode := "0"
+	// Set up pipes to capture output
+	stdout, err := cmd.StdoutPipe()
 	if err != nil {
+		fatalError("Failed to create stdout pipe:", err)
+	}
+	stderr, err := cmd.StderrPipe()
+	if err != nil {
+		fatalError("Failed to create stderr pipe:", err)
+	}
+
+	// Start the command
+	if err := cmd.Start(); err != nil {
+		fatalError("Failed to start terraform command:", err)
+	}
+
+	// Stream output to stdout
+	var output strings.Builder
+	go func() {
+		scanner := bufio.NewScanner(stdout)
+		for scanner.Scan() {
+			line := scanner.Text()
+			fmt.Println(line)
+			output.WriteString(line + "\n")
+		}
+	}()
+	go func() {
+		scanner := bufio.NewScanner(stderr)
+		for scanner.Scan() {
+			line := scanner.Text()
+			fmt.Fprintln(os.Stderr, line)
+			output.WriteString(line + "\n")
+		}
+	}()
+
+	// Wait for command to complete
+	exitCode := "0"
+	if err := cmd.Wait(); err != nil {
 		if exitErr, ok := err.(*exec.ExitError); ok {
 			exitCode = fmt.Sprintf("%d", exitErr.ExitCode())
 		}
@@ -105,7 +167,7 @@ func main() {
 	}
 
 	// Create a comment body based on command
-	comment, err := terraform.Comment(command, string(output), exitCode, cfg.TerraformWorkspace, cfg.DetailsState)
+	comment, err := terraform.Comment(command, output.String(), exitCode, cfg.TerraformWorkspace, cfg.DetailsState)
 	if err != nil {
 		fatalError("Error creating comment body", err)
 	}
