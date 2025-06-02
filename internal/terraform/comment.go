@@ -20,7 +20,8 @@ func Comment(command Command, input, exitCode, workspace, detailsState string) (
 	// Determine which template to use
 	var tmplName string
 
-	if command == CommandPlan {
+	switch command {
+	case CommandPlan:
 		if exitCode == "0" || exitCode == "2" {
 			// Process successful plan output
 			input = ParsePlan(input, maxCommentLength)
@@ -28,7 +29,15 @@ func Comment(command Command, input, exitCode, workspace, detailsState string) (
 		} else {
 			tmplName = "plan_failure.tmpl"
 		}
-	} else {
+	case CommandApply:
+		if exitCode == "0" {
+			// For apply, we want to show the full output but clean it up
+			input = strings.TrimSpace(input)
+			tmplName = "apply_success.tmpl"
+		} else {
+			tmplName = "apply_failure.tmpl"
+		}
+	default:
 		tmplName = "general.tmpl"
 	}
 
