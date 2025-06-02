@@ -22,8 +22,9 @@ FROM alpine:3.19
 
 WORKDIR /app
 
-# Install terraform and bash
-RUN apk add --no-cache curl unzip bash && \
+# Install terraform, bash, and AWS CLI
+RUN apk add --no-cache curl unzip bash python3 py3-pip && \
+    pip3 install --no-cache-dir awscli && \
     curl -LO https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION:-1.12.1}/terraform_${TERRAFORM_VERSION:-1.12.1}_linux_amd64.zip && \
     unzip terraform_${TERRAFORM_VERSION:-1.12.1}_linux_amd64.zip -d /usr/local/bin && \
     rm terraform_${TERRAFORM_VERSION:-1.12.1}_linux_amd64.zip && \
