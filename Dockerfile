@@ -22,8 +22,8 @@ FROM alpine:3.19
 
 WORKDIR /app
 
-# Install terraform
-RUN apk add --no-cache curl unzip && \
+# Install terraform and bash
+RUN apk add --no-cache curl unzip bash && \
     curl -LO https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION:-1.12.1}/terraform_${TERRAFORM_VERSION:-1.12.1}_linux_amd64.zip && \
     unzip terraform_${TERRAFORM_VERSION:-1.12.1}_linux_amd64.zip -d /usr/local/bin && \
     rm terraform_${TERRAFORM_VERSION:-1.12.1}_linux_amd64.zip && \
