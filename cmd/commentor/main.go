@@ -49,13 +49,19 @@ func main() {
 	logger.Debug("Parsed arguments", zap.String("command", args.Command), zap.String("directory", args.Directory))
 
 	// Parse & validate the command
-	command := terraform.Command(args.Command)
+	commandParts := strings.Fields(args.Command)
+	command := terraform.Command(commandParts[0])
 	if !command.Validate() {
-		fatalError("Invalid command provided. Valid commands are: fmt, init, plan.", nil)
+		fatalError("Invalid command provided. Valid commands are: fmt, plan, apply, destroy.", nil)
 	}
 
 	// Build command arguments
 	cmdArgs := []string{"-chdir=" + args.Directory, string(command)}
+	// Add any additional arguments from the command string
+	if len(commandParts) > 1 {
+		cmdArgs = append(cmdArgs, commandParts[1:]...)
+	}
+	// Add any additional arguments from args.Args
 	cmdArgs = append(cmdArgs, args.Args...)
 
 	// Create a GitHub client
